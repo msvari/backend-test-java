@@ -1,0 +1,33 @@
+package com.fcamara.park.model.enumeration;
+
+public enum VehicleBrand {
+    AUDI,
+    BMW,
+    BUGATTI,
+    BUGGY,
+    BYD,
+    CAOA_CHERY,
+    CHEVROLET,
+    CHRYSLER,
+    CITROEN,
+    DAEWOO,
+    DODGE,
+    FERRARI,
+    FIAT,
+    FORD,
+    GMC,
+    HARLEY_DAVIDSON,
+    HONDA,
+    HYUNDAI,
+    IVECO,
+    JAC,
+    JAGUAR,
+    JEEP,
+    KIA,
+    LEXUS,
+    LIFAN,
+    LOTUS,
+    YAMAHA,
+    MAZDA,
+    MCLAREN;
+}
