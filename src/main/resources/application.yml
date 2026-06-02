@@ -30,3 +30,21 @@ api:
   security:
     token:
       secret: ${JWT_TOKEN:secret-key}
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
+info:
+  app:
+    name: API de gestão de estacionamentos - Spring Boot
+    version: 1.0.0
