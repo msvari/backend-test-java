@@ -16,6 +16,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutionException;
 import static com.fcamara.park.util.DateUtil.convertToLocalDateTime;
 import static com.fcamara.park.util.DateUtil.formatDate;
 
@@ -26,10 +29,10 @@ public class ReportParkServiceImpl implements ReportService {
 
     private final ParkServiceImpl parkService;
     private final SpotService spotService;
+    private final ExecutorService virtualExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
     public InputStreamResource report(UUID spotId, String initialDate, String finalDate) {
-        var spot = spotService.findById(spotId)
-                .orElseThrow(() -> new IllegalArgumentException("Estacionamento não encontrado"));
+        var spot = spotService.findById(spotId).orElseThrow(() -> new IllegalArgumentException("Estacionamento não encontrado"));
 
         String title = "Relatório de Estacionamento - " + spot.getName();
 
@@ -63,6 +66,17 @@ public class ReportParkServiceImpl implements ReportService {
 
     @Override
     public InputStreamResource generateReport(String title, List<String> columnHeaders, List<Map<String, String>> rows, Map<String, Long> summary) {
+        try {
+            return virtualExecutor.submit(() -> buildPdfReport(title, columnHeaders, rows, summary))
+                .get();
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("state=generate-report-error", e);
+            Thread.currentThread().interrupt();
+            return new InputStreamResource(new ByteArrayInputStream(new byte[0]));
+        }
+    }
+
+    private InputStreamResource buildPdfReport(String title, List<String> columnHeaders, List<Map<String, String>> rows, Map<String, Long> summary) {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 
         try {
@@ -73,14 +87,10 @@ public class ReportParkServiceImpl implements ReportService {
             document.add(new Paragraph(title));
 
             float[] columnWidths = new float[columnHeaders.size()];
-            for (int i = 0; i < columnHeaders.size(); i++) {
-                columnWidths[i] = 150F;
-            }
+            Arrays.fill(columnWidths, 150F);
             Table table = new Table(columnWidths);
 
-            for (String header : columnHeaders) {
-                table.addCell(header);
-            }
+            columnHeaders.forEach(table::addCell);
 
             for (Map<String, String> row : rows) {
                 for (String header : columnHeaders) {
@@ -91,9 +101,7 @@ public class ReportParkServiceImpl implements ReportService {
             document.add(table);
 
             document.add(new Paragraph("\nSumário:"));
-            for (Map.Entry<String, Long> entry : summary.entrySet()) {
-                document.add(new Paragraph(entry.getKey() + ": " + entry.getValue()));
-            }
+            summary.forEach((key, value) -> document.add(new Paragraph(key + ": " + value)));
 
             document.close();
         } catch (Exception e) {

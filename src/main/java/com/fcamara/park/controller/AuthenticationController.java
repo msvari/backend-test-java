@@ -20,9 +20,9 @@ import java.util.Objects;
 @AllArgsConstructor
 public class AuthenticationController {
 
-    private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
-    private TokenService tokenService;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final TokenService tokenService;
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {

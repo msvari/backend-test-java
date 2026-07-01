@@ -19,9 +19,7 @@ import java.util.UUID;
 public class ParkController {
 
     private final ParkServiceImpl parkService;
-
     private final VehicleService vehicleService;
-
     private final SpotService spotService;
 
     @PostMapping("/getIn")
